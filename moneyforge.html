@@ -94,7 +94,7 @@
         
         .control-label {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             margin-bottom: 8px;
             font-weight: 600;
             color: #cbd5e1;
@@ -107,7 +107,7 @@
         }
         
         .slider-value {
-            min-width: 40px;
+            min-width: 60px;
             text-align: center;
             font-weight: bold;
             color: var(--primary);
@@ -138,6 +138,7 @@
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         
         button {
@@ -164,6 +165,10 @@
         
         button.danger {
             background: var(--accent);
+        }
+        
+        button.success {
+            background: var(--success);
         }
         
         .visualization-area {
@@ -241,33 +246,6 @@
             color: #94a3b8;
         }
         
-        .wealth-pyramid {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 20px;
-        }
-        
-        .pyramid-row {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 5px;
-        }
-        
-        .pyramid-segment {
-            width: 30px;
-            height: 30px;
-            margin: 0 2px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
-        }
-        
         .scenario-selector {
             display: flex;
             gap: 10px;
@@ -314,19 +292,61 @@
             font-size: 0.9rem;
         }
         
-        .wealth-1 { background-color: var(--wealth-1); }
-        .wealth-2 { background-color: var(--wealth-2); }
-        .wealth-3 { background-color: var(--wealth-3); }
-        .wealth-4 { background-color: var(--wealth-4); }
-        .wealth-5 { background-color: var(--wealth-5); }
-        .wealth-6 { background-color: var(--wealth-6); }
-        .wealth-7 { background-color: var(--wealth-7); }
-        .wealth-8 { background-color: var(--wealth-8); }
-        .wealth-9 { background-color: var(--wealth-9); }
-        .wealth-10 { background-color: var(--wealth-10); }
+        .phase-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.95);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .event-log {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(30, 41, 59, 0.95);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            z-index: 1000;
+        }
+        
+        .event-log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+        
+        .event-log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .event-log-entry.important {
+            color: var(--primary);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
+    <div class="phase-indicator" id="phaseIndicator">
+        Phase: BARTER
+    </div>
+    
+    <div class="event-log" id="eventLog">
+        <div style="font-weight: bold; margin-bottom: 10px; color: var(--primary);">Event Log</div>
+    </div>
+    
     <div class="container">
         <header>
             <h1>💰 MoneyForge</h1>
@@ -338,41 +358,41 @@
             <div class="control-grid">
                 <div class="control-group">
                     <div class="control-label">
-                        <span>Initial Money Supply</span>
-                        <span class="slider-value" id="moneySupplyValue">1000</span>
+                        <span>Agent Count</span>
+                        <span class="slider-value" id="agentCountValue">80</span>
                     </div>
                     <div class="slider-container">
-                        <input type="range" id="moneySupply" min="100" max="10000" value="1000" step="100" title="Initial Money Supply">
+                        <input type="range" id="agentCount" min="20" max="150" value="80" step="10">
                     </div>
                 </div>
                 
                 <div class="control-group">
                     <div class="control-label">
-                        <span>Agent Greed</span>
-                        <span class="slider-value" id="greedValue">0.6</span>
+                        <span>Production Rate</span>
+                        <span class="slider-value" id="productionRateValue">0.5</span>
                     </div>
                     <div class="slider-container">
-                        <input type="range" id="greed" min="0" max="1" value="0.6" step="0.05" title="Agent Greed">
+                        <input type="range" id="productionRate" min="0.1" max="2.0" value="0.5" step="0.1">
                     </div>
                 </div>
                 
                 <div class="control-group">
                     <div class="control-label">
-                        <span>Risk Tolerance</span>
-                        <span class="slider-value" id="riskValue">0.5</span>
+                        <span>Barter Frustration Threshold</span>
+                        <span class="slider-value" id="frustrationValue">10</span>
                     </div>
                     <div class="slider-container">
-                        <input type="range" id="risk" min="0" max="1" value="0.5" step="0.05" title="Risk Tolerance">
+                        <input type="range" id="frustration" min="3" max="30" value="10" step="1">
                     </div>
                 </div>
                 
                 <div class="control-group">
                     <div class="control-label">
-                        <span>Trust Level</span>
-                        <span class="slider-value" id="trustValue">0.8</span>
+                        <span>Trade Distance</span>
+                        <span class="slider-value" id="tradeDistanceValue">50</span>
                     </div>
                     <div class="slider-container">
-                        <input type="range" id="trust" min="0" max="1" value="0.8" step="0.05" title="Trust Level">
+                        <input type="range" id="tradeDistance" min="20" max="100" value="50" step="5">
                     </div>
                 </div>
             </div>
@@ -381,72 +401,43 @@
                 <button id="startBtn" class="primary">Start Simulation</button>
                 <button id="pauseBtn">Pause</button>
                 <button id="resetBtn">Reset</button>
-                <button id="interveneBtn" class="danger">Economic Intervention</button>
+                <button id="speedUpBtn" class="success">Speed Up (2x)</button>
+                <button id="printMoneyBtn" class="danger">Print Money</button>
             </div>
             
             <div class="scenario-selector">
-                <button class="scenario-btn" data-scenario="invisible-hand">Invisible Hand</button>
-                <button class="scenario-btn" data-scenario="hyperinflation">Hyperinflation</button>
-                <button class="scenario-btn" data-scenario="depression">Great Depression</button>
-                <button class="scenario-btn" data-scenario="ubi">Universal Basic Income</button>
-                <button class="scenario-btn" data-scenario="crypto">Cryptocurrency</button>
-                <button class="scenario-btn" data-scenario="communist">Communist Utopia</button>
+                <button class="scenario-btn active" data-scenario="barter">Pure Barter</button>
+                <button class="scenario-btn" data-scenario="money-seed">Money Seeded</button>
+                <button class="scenario-btn" data-scenario="inequality">High Inequality</button>
+                <button class="scenario-btn" data-scenario="crash">Economic Crash</button>
             </div>
         </div>
         
         <div class="stats-panel">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label">Total Money Supply</div>
-                    <div class="stat-value" id="totalMoney">$1,000,000</div>
+                    <div class="stat-label">Currency Adoption</div>
+                    <div class="stat-value" id="currencyAdoption">0%</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Gini Coefficient</div>
-                    <div class="stat-value" id="giniCoefficient">0.42</div>
+                    <div class="stat-label">Successful Trades</div>
+                    <div class="stat-value" id="successfulTrades">0</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Inflation Rate</div>
-                    <div class="stat-value" id="inflationRate">2.1%</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Unemployment</div>
-                    <div class="stat-value" id="unemployment">4.5%</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Trade Volume</div>
-                    <div class="stat-value" id="tradeVolume">$125,000</div>
+                    <div class="stat-label">Failed Barters</div>
+                    <div class="stat-value" id="failedBarters">0</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Average Wealth</div>
-                    <div class="stat-value" id="avgWealth">$2,500</div>
+                    <div class="stat-value" id="avgWealth">15 goods</div>
                 </div>
-            </div>
-            
-            <div class="wealth-pyramid">
-                <div class="pyramid-row">
-                    <div class="pyramid-segment wealth-10">1%</div>
+                <div class="stat-card">
+                    <div class="stat-label">Gini Coefficient</div>
+                    <div class="stat-value" id="giniCoefficient">0.00</div>
                 </div>
-                <div class="pyramid-row">
-                    <div class="pyramid-segment wealth-9">4%</div>
-                    <div class="pyramid-segment wealth-9">5%</div>
-                </div>
-                <div class="pyramid-row">
-                    <div class="pyramid-segment wealth-8">10%</div>
-                    <div class="pyramid-segment wealth-7">10%</div>
-                    <div class="pyramid-segment wealth-6">10%</div>
-                </div>
-                <div class="pyramid-row">
-                    <div class="pyramid-segment wealth-5">15%</div>
-                    <div class="pyramid-segment wealth-4">15%</div>
-                    <div class="pyramid-segment wealth-3">15%</div>
-                    <div class="pyramid-segment wealth-2">10%</div>
-                </div>
-                <div class="pyramid-row">
-                    <div class="pyramid-segment wealth-1">5%</div>
-                    <div class="pyramid-segment wealth-1">5%</div>
-                    <div class="pyramid-segment wealth-1">5%</div>
-                    <div class="pyramid-segment wealth-1">5%</div>
-                    <div class="pyramid-segment wealth-1">5%</div>
+                <div class="stat-card">
+                    <div class="stat-label">Money Supply</div>
+                    <div class="stat-value" id="moneySupply">$0</div>
                 </div>
             </div>
         </div>
@@ -466,233 +457,57 @@
         <div class="agent-legend">
             <div class="legend-item">
                 <div class="legend-color" style="background-color: #dc2626;"></div>
-                <span>Workers (Poor)</span>
+                <span>Barter (No Money)</span>
             </div>
             <div class="legend-item">
                 <div class="legend-color" style="background-color: #d97706;"></div>
-                <span>Businesses (Middle)</span>
+                <span>Early Adopter</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color" style="background-color: #16a34a;"></div>
-                <span>Banks (Upper Middle)</span>
+                <div class="legend-color" style="background-color: #10b981;"></div>
+                <span>Money User</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color" style="background-color: #2563eb;"></div>
-                <span>Investors (Rich)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background-color: #7c3aed;"></div>
-                <span>Government (Wealthy)</span>
+                <div class="legend-color" style="background-color: #3b82f6;"></div>
+                <span>Rich (Money)</span>
             </div>
         </div>
         
         <footer>
             MoneyForge - The only thing more artificial than intelligence is value.
-            <br>Simulating the world's most successful collective fiction since 2023.
+            <br>Simulating the world's most successful collective fiction since 2025.
         </footer>
     </div>
 
     <script>
-        // --- Session 1: Core Engine ---
+        // ============================================
+        // MONEYFORGE - ENHANCED EDITION
+        // Full Barter → Money Emergence System
+        // ============================================
+        
         // Utility functions
         function random(min, max) {
+            if (max === undefined) {
+                max = min;
+                min = 0;
+            }
             return Math.random() * (max - min) + min;
         }
-        function generateId() {
-            return Math.floor(Math.random() * 1e9);
+        
+        function randomInt(min, max) {
+            return Math.floor(random(min, max + 1));
         }
-
-        // Agent class
-        class Agent {
-            constructor(type) {
-                this.id = generateId();
-                this.type = type; // 'worker', 'trader', 'producer'
-                this.x = random(0, economyCanvas.width);
-                this.y = random(0, economyCanvas.height);
-                this.vx = random(-1, 1);
-                this.vy = random(-1, 1);
-                this.size = 10;
-                // Economic properties
-                this.money = 0;
-                this.goods = {
-                    food: Math.floor(random(0, 5)),
-                    tools: Math.floor(random(0, 5)),
-                    materials: Math.floor(random(0, 5))
-                };
-                // Skills
-                this.skills = this.type === 'worker' ? ['food'] :
-                              this.type === 'trader' ? [] :
-                              ['tools', 'materials'];
-                // Desires
-                this.desires = this.randomDesires();
-                // Movement
-                this.target = null;
-            }
-            randomDesires() {
-                const goods = ['food', 'tools', 'materials'];
-                let desires = [];
-                for (let i = 0; i < 2; i++) {
-                    desires.push(goods[Math.floor(Math.random() * goods.length)]);
-                }
-                return desires;
-            }
-            move() {
-                this.x += this.vx;
-                this.y += this.vy;
-                // Bounce off walls
-                if (this.x < 0 || this.x > economyCanvas.width) this.vx *= -1;
-                if (this.y < 0 || this.y > economyCanvas.height) this.vy *= -1;
-                this.x = Math.max(0, Math.min(economyCanvas.width, this.x));
-                this.y = Math.max(0, Math.min(economyCanvas.height, this.y));
-            }
-            produceGoods() {
-                this.skills.forEach(skill => {
-                    this.goods[skill] += Controls.production_rate;
-                });
-            }
-            tryBarter(other) {
-                // Double coincidence of wants
-                const iWant = this.desires.find(d => other.goods[d] > 0);
-                const theyWant = other.desires.find(d => this.goods[d] > 0);
-                if (iWant && theyWant) {
-                    // Exchange goods
-                    this.goods[iWant]++;
-                    other.goods[iWant]--;
-                    other.goods[theyWant]++;
-                    this.goods[theyWant]--;
-                    Stats.successful_trades++;
-                    return true;
-                } else {
-                    Stats.failed_barter_attempts++;
-                    return false;
-                }
-            }
+        
+        function distance(x1, y1, x2, y2) {
+            return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
         }
-
-        // --- Canvas Setup ---
-        // Already set up above
-
-        // --- Agent Population ---
-    // ...existing code...
-        function initializeAgents() {
-            agents = [];
-            for (let i = 0; i < Controls.agent_count; i++) {
-                // Randomly assign type
-                const types = ['worker', 'trader', 'producer'];
-                const type = types[Math.floor(Math.random() * types.length)];
-                agents.push(new Agent(type));
-            }
-        }
-
-        // --- Animation Loop ---
-        function coreEngineStep() {
-            // Move agents
-            agents.forEach(agent => {
-                agent.move();
-                agent.produceGoods();
-            });
-            // Barter attempts
-            for (let i = 0; i < agents.length; i++) {
-                for (let j = i + 1; j < agents.length; j++) {
-                    // If close enough, try to barter
-                    const a = agents[i], b = agents[j];
-                    const dist = Math.hypot(a.x - b.x, a.y - b.y);
-                    if (dist < 30) {
-                        a.tryBarter(b);
-                    }
-                }
-            }
-            drawEconomy();
-            updateStats();
-        }
-
-        // --- Main Animation ---
-        function runCoreEngine() {
-            coreEngineStep();
-            requestAnimationFrame(runCoreEngine);
-        }
-
-        // --- Start Core Engine on Load ---
-        window.addEventListener('load', () => {
-            initializeAgents();
-            runCoreEngine();
-        });
-        // --- Stats Object ---
-        const Stats = {
-            total_agents: 100,
-            total_trades: 0,
-            successful_trades: 0,
-            failed_barter_attempts: 0,
-            currency_adoption: 0,
-            money_supply: 0,
-            gini_coefficient: 0,
-            avg_wealth: 0,
-            median_wealth: 0,
-            price_index: {},
-            inflation_rate: 0
-        };
-            // --- Controls Object ---
-            const Controls = {
-                speed: 1.0,
-                agent_count: 100,
-                production_rate: 0.5,
-                consumption_rate: 0.3,
-                enable_money: true,
-                money_seeding: 0,
-                print_money: function() {
-                    agents.forEach(agent => agent.money += 100);
-                    updateStats();
-                },
-                reset: function() {
-                    simulationRunning = false;
-                    if (animationId) cancelAnimationFrame(animationId);
-                    time = 0;
-                    transactions = [];
-                    initializeAgents();
-                    drawEconomy();
-                    drawWealthChart();
-                    updateStats();
-                },
-                introduce_bank: function() {
-                    // Add a bank agent
-                    agents.push({
-                        id: agents.length,
-                        type: 'BANK',
-                        x: Math.random() * economyCanvas.width,
-                        y: Math.random() * economyCanvas.height,
-                        vx: (Math.random() - 0.5) * 2,
-                        vy: (Math.random() - 0.5) * 2,
-                        money: 5000,
-                        color: '#16a34a',
-                        size: 15,
-                        wealthHistory: []
-                    });
-                    drawEconomy();
-                    updateStats();
-                },
-                preset_barter: function() {
-                    Controls.enable_money = false;
-                    agents.forEach(agent => agent.money = 0);
-                    updateStats();
-                },
-                preset_money: function() {
-                    Controls.enable_money = true;
-                    agents.forEach(agent => agent.money = Math.random() < 0.5 ? 100 : 0);
-                    updateStats();
-                },
-                preset_crash: function() {
-                    agents.forEach(agent => agent.money *= 0.1);
-                    updateStats();
-                }
-            };
-
+        
         // Canvas setup
         const economyCanvas = document.getElementById('economyCanvas');
         const wealthChart = document.getElementById('wealthChart');
         const ctx = economyCanvas.getContext('2d');
         const wealthCtx = wealthChart.getContext('2d');
         
-        // Set canvas dimensions
         function resizeCanvases() {
             economyCanvas.width = economyCanvas.offsetWidth;
             economyCanvas.height = economyCanvas.offsetHeight;
@@ -703,398 +518,598 @@
         window.addEventListener('resize', resizeCanvases);
         resizeCanvases();
         
-        // Simulation state
+        // Global state
+        let agents = [];
         let simulationRunning = false;
         let animationId = null;
-    // ...existing code...
-        let transactions = [];
-        let moneySupply = 1000;
         let time = 0;
+        let speedMultiplier = 1;
+        let recentTrades = [];
+        let eventLog = [];
         
-        // Agent types
-        const AGENT_TYPES = {
-            WORKER: { color: '#dc2626', size: 8, count: 60 },
-            BUSINESS: { color: '#d97706', size: 12, count: 20 },
-            BANK: { color: '#16a34a', size: 15, count: 5 },
-            INVESTOR: { color: '#2563eb', size: 18, count: 10 },
-            GOVERNMENT: { color: '#7c3aed', size: 22, count: 5 }
+        // Configuration
+        const Config = {
+            agentCount: 80,
+            productionRate: 0.5,
+            frustrationThreshold: 10,
+            tradeDistance: 50,
+            moneyAdoptionRate: 0.3, // If 30% of neighbors use money, consider adopting
         };
+        
+        // Goods types
+        const GOODS = ['food', 'tools', 'materials'];
+        
+        // Agent class with full economic behavior
+        class Agent {
+            constructor() {
+                this.id = Math.random();
+                this.x = random(economyCanvas.width);
+                this.y = random(economyCanvas.height);
+                this.vx = random(-1, 1);
+                this.vy = random(-1, 1);
+                
+                // Goods inventory
+                this.goods = {
+                    food: randomInt(0, 10),
+                    tools: randomInt(0, 10),
+                    materials: randomInt(0, 10)
+                };
+                
+                // Skills (what they can produce)
+                const skillTypes = [
+                    ['food'],
+                    ['tools'],
+                    ['materials'],
+                    ['food', 'tools'],
+                    ['tools', 'materials']
+                ];
+                this.skills = skillTypes[randomInt(0, skillTypes.length - 1)];
+                
+                // Desires (what they want)
+                this.desires = this.randomDesires();
+                
+                // Money system
+                this.uses_money = false;
+                this.money = 0;
+                
+                // Trading history
+                this.successful_trades = 0;
+                this.failed_barter_attempts = 0;
+                
+                // Visual
+                this.size = 8;
+            }
+            
+            randomDesires() {
+                const desires = [];
+                const numDesires = randomInt(1, 2);
+                for (let i = 0; i < numDesires; i++) {
+                    const good = GOODS[randomInt(0, GOODS.length - 1)];
+                    if (!desires.includes(good)) {
+                        desires.push(good);
+                    }
+                }
+                return desires;
+            }
+            
+            move() {
+                this.x += this.vx * speedMultiplier;
+                this.y += this.vy * speedMultiplier;
+                
+                // Bounce off walls
+                if (this.x < 0 || this.x > economyCanvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > economyCanvas.height) this.vy *= -1;
+                
+                this.x = Math.max(0, Math.min(economyCanvas.width, this.x));
+                this.y = Math.max(0, Math.min(economyCanvas.height, this.y));
+            }
+            
+            produce() {
+                // Produce goods based on skills
+                this.skills.forEach(skill => {
+                    if (Math.random() < Config.productionRate / 10) {
+                        this.goods[skill] += 1;
+                    }
+                });
+            }
+            
+            totalGoods() {
+                return this.goods.food + this.goods.tools + this.goods.materials;
+            }
+            
+            totalWealth() {
+                if (this.uses_money) {
+                    return this.money;
+                }
+                return this.totalGoods();
+            }
+            
+            getColor() {
+                if (!this.uses_money) {
+                    // Barter agents - red
+                    return '#dc2626';
+                }
+                
+                // Money users - color by wealth
+                if (this.money > 200) return '#3b82f6'; // Rich - blue
+                if (this.money > 100) return '#10b981'; // Well-off - green
+                return '#d97706'; // Early adopter - orange
+            }
+            
+            tryBarter(other) {
+                // Pure barter - need double coincidence of wants
+                const iWant = this.desires.find(d => other.goods[d] > 0);
+                const theyWant = other.desires.find(d => this.goods[d] > 0);
+                
+                if (iWant && theyWant) {
+                    // Success! Exchange goods
+                    this.goods[iWant]++;
+                    other.goods[iWant]--;
+                    other.goods[theyWant]++;
+                    this.goods[theyWant]--;
+                    
+                    this.successful_trades++;
+                    other.successful_trades++;
+                    
+                    return true;
+                } else {
+                    // Failed - no double coincidence
+                    this.failed_barter_attempts++;
+                    other.failed_barter_attempts++;
+                    return false;
+                }
+            }
+            
+            tryMoneyTrade(other) {
+                // Both use money - simple price-based exchange
+                if (this.uses_money && other.uses_money) {
+                    const iWant = this.desires.find(d => other.goods[d] > 0);
+                    if (iWant) {
+                        const price = 10; // Simple fixed price
+                        if (this.money >= price) {
+                            this.money -= price;
+                            other.money += price;
+                            this.goods[iWant]++;
+                            other.goods[iWant]--;
+                            
+                            this.successful_trades++;
+                            other.successful_trades++;
+                            return true;
+                        }
+                    }
+                }
+                
+                // Mixed - one uses money, one doesn't
+                if (this.uses_money && !other.uses_money) {
+                    // Money user wants goods from barter user
+                    const iWant = this.desires.find(d => other.goods[d] > 0);
+                    if (iWant && this.money >= 10) {
+                        this.money -= 10;
+                        this.goods[iWant]++;
+                        other.goods[iWant]--;
+                        
+                        // Give barter user some money
+                        other.money += 10;
+                        
+                        this.successful_trades++;
+                        other.successful_trades++;
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+            
+            considerMoneyAdoption() {
+                // If barter fails enough, consider adopting money
+                if (this.uses_money) return;
+                
+                if (this.failed_barter_attempts > Config.frustrationThreshold) {
+                    // Look at nearby agents
+                    const nearby = agents.filter(a => 
+                        a !== this && 
+                        distance(this.x, this.y, a.x, a.y) < Config.tradeDistance * 2
+                    );
+                    
+                    if (nearby.length > 0) {
+                        const moneyUsers = nearby.filter(a => a.uses_money).length;
+                        const adoptionRate = moneyUsers / nearby.length;
+                        
+                        // If enough neighbors use money, adopt it
+                        if (adoptionRate > Config.moneyAdoptionRate || Math.random() < 0.05) {
+                            this.uses_money = true;
+                            
+                            // Convert goods to money
+                            this.money = this.totalGoods() * 10;
+                            this.goods.food = 0;
+                            this.goods.tools = 0;
+                            this.goods.materials = 0;
+                            
+                            // Reset failed attempts
+                            this.failed_barter_attempts = 0;
+                            
+                            addEvent(`Agent adopted MONEY! (${Math.round(adoptionRate * 100)}% neighbors use it)`, true);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Event logging
+        function addEvent(message, important = false) {
+            const logDiv = document.getElementById('eventLog');
+            const entry = document.createElement('div');
+            entry.className = 'event-log-entry' + (important ? ' important' : '');
+            entry.textContent = `[${Math.floor(time)}] ${message}`;
+            
+            logDiv.appendChild(entry);
+            
+            // Keep only last 10 events
+            while (logDiv.children.length > 11) { // 11 because of title
+                logDiv.children[1].remove();
+            }
+            
+            // Scroll to bottom
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
         
         // Initialize agents
         function initializeAgents() {
             agents = [];
-            let id = 0;
-            
-            // Create agents for each type
-            for (const [type, config] of Object.entries(AGENT_TYPES)) {
-                for (let i = 0; i < config.count; i++) {
-                    const wealthMultiplier = type === 'WORKER' ? 0.5 : 
-                                           type === 'BUSINESS' ? 2 : 
-                                           type === 'BANK' ? 10 : 
-                                           type === 'INVESTOR' ? 20 : 50;
-                    
-                    agents.push({
-                        id: id++,
-                        type: type,
-                        x: Math.random() * economyCanvas.width,
-                        y: Math.random() * economyCanvas.height,
-                        vx: (Math.random() - 0.5) * 2,
-                        vy: (Math.random() - 0.5) * 2,
-                        money: Math.max(100, Math.random() * 500 * wealthMultiplier),
-                        color: config.color,
-                        size: config.size,
-                        wealthHistory: []
-                    });
-                }
+            for (let i = 0; i < Config.agentCount; i++) {
+                agents.push(new Agent());
             }
             
-            // Initialize wealth history
-            agents.forEach(agent => {
-                for (let i = 0; i < 100; i++) {
-                    agent.wealthHistory.push(agent.money);
-                }
-            });
+            eventLog = [];
+            document.getElementById('eventLog').innerHTML = '<div style="font-weight: bold; margin-bottom: 10px; color: var(--primary);">Event Log</div>';
+            addEvent('Simulation started - Pure barter economy');
         }
         
-        // Update simulation stats
-        function updateStats() {
-            const totalMoney = agents.reduce((sum, agent) => sum + agent.money, 0);
-            const avgWealth = totalMoney / agents.length;
+        // Update phase indicator
+        function updatePhase() {
+            const moneyUsers = agents.filter(a => a.uses_money).length;
+            const adoption = moneyUsers / agents.length;
             
-            // Calculate Gini coefficient (simplified)
-            const sortedWealth = agents.map(a => a.money).sort((a, b) => a - b);
-            const n = agents.length;
-            let giniSum = 0;
+            let phase = '';
+            if (adoption === 0) {
+                phase = 'PURE BARTER';
+            } else if (adoption < 0.1) {
+                phase = 'EARLY ADOPTION';
+            } else if (adoption < 0.5) {
+                phase = 'MONEY SPREADING';
+            } else if (adoption < 0.9) {
+                phase = 'MONEY DOMINANT';
+            } else {
+                phase = 'MONEY ECONOMY';
+            }
             
-            for (let i = 0; i < n; i++) {
-                for (let j = 0; j < n; j++) {
-                    giniSum += Math.abs(sortedWealth[i] - sortedWealth[j]);
+            document.getElementById('phaseIndicator').textContent = `Phase: ${phase}`;
+        }
+        
+        // Main simulation step
+        function updateSimulation() {
+            if (!simulationRunning) return;
+            
+            time++;
+            
+            // Move and produce
+            agents.forEach(agent => {
+                agent.move();
+                agent.produce();
+            });
+            
+            // Trading attempts
+            recentTrades = [];
+            
+            for (let i = 0; i < agents.length; i++) {
+                for (let j = i + 1; j < agents.length; j++) {
+                    const a = agents[i];
+                    const b = agents[j];
+                    
+                    const dist = distance(a.x, a.y, b.x, b.y);
+                    
+                    if (dist < Config.tradeDistance) {
+                        let success = false;
+                        
+                        // Try appropriate trade type
+                        if (!a.uses_money && !b.uses_money) {
+                            success = a.tryBarter(b);
+                        } else {
+                            success = a.tryMoneyTrade(b);
+                        }
+                        
+                        if (success) {
+                            recentTrades.push({
+                                from: {x: a.x, y: a.y},
+                                to: {x: b.x, y: b.y},
+                                age: 0
+                            });
+                        }
+                    }
                 }
             }
             
-            const gini = giniSum / (2 * n * n * avgWealth);
+            // Money adoption decisions
+            agents.forEach(agent => agent.considerMoneyAdoption());
             
-            // Update DOM
-            document.getElementById('totalMoney').textContent = `$${Math.round(totalMoney).toLocaleString()}`;
-            document.getElementById('giniCoefficient').textContent = gini.toFixed(3);
-            document.getElementById('inflationRate').textContent = `${(Math.sin(time/100) * 5 + 2).toFixed(1)}%`;
-            document.getElementById('unemployment').textContent = `${(Math.sin(time/50) * 2 + 5).toFixed(1)}%`;
-            document.getElementById('tradeVolume').textContent = `$${Math.round(Math.random() * 50000 + 100000).toLocaleString()}`;
-            document.getElementById('avgWealth').textContent = `$${Math.round(avgWealth).toLocaleString()}`;
+            // Age trades
+            recentTrades = recentTrades.filter(t => t.age++ < 30);
+            
+            // Update visuals
+            drawEconomy();
+            drawWealthChart();
+            updateStats();
+            updatePhase();
+            
+            animationId = requestAnimationFrame(updateSimulation);
         }
         
         // Draw economy canvas
         function drawEconomy() {
-            ctx.clearRect(0, 0, economyCanvas.width, economyCanvas.height);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, economyCanvas.width, economyCanvas.height);
             
-            // Draw transactions
-            ctx.strokeStyle = 'rgba(251, 191, 36, 0.3)';
-            ctx.lineWidth = 1;
+            // Draw trade lines
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+            ctx.lineWidth = 2;
             
-            transactions.forEach(transaction => {
+            recentTrades.forEach(trade => {
+                const alpha = 1 - (trade.age / 30);
+                ctx.strokeStyle = `rgba(251, 191, 36, ${alpha * 0.4})`;
                 ctx.beginPath();
-                ctx.moveTo(transaction.from.x, transaction.from.y);
-                ctx.lineTo(transaction.to.x, transaction.to.y);
+                ctx.moveTo(trade.from.x, trade.from.y);
+                ctx.lineTo(trade.to.x, trade.to.y);
                 ctx.stroke();
             });
             
             // Draw agents
             agents.forEach(agent => {
+                const color = agent.getColor();
+                
+                // Agent body
                 ctx.beginPath();
                 ctx.arc(agent.x, agent.y, agent.size, 0, Math.PI * 2);
-                ctx.fillStyle = agent.color;
+                ctx.fillStyle = color;
                 ctx.fill();
                 
-                // Add glow effect for wealthy agents
-                if (agent.money > 1000) {
-                    ctx.shadowColor = agent.color;
+                // Glow for wealthy agents
+                if (agent.uses_money && agent.money > 100) {
+                    ctx.shadowColor = color;
                     ctx.shadowBlur = 15;
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
                 
-                // Draw money indicator
-                ctx.fillStyle = 'white';
-                ctx.font = '10px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(`$${Math.round(agent.money)}`, agent.x, agent.y + agent.size + 15);
+                // Draw inventory/money indicator
+                if (agent.uses_money) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.font = 'bold 9px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`$${Math.floor(agent.money)}`, agent.x, agent.y - agent.size - 3);
+                } else {
+                    const total = agent.totalGoods();
+                    if (total > 0) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.font = '8px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(`${total}`, agent.x, agent.y - agent.size - 3);
+                    }
+                }
             });
-            
-            // Limit transactions history
-            if (transactions.length > 50) {
-                transactions = transactions.slice(-50);
-            }
         }
         
-        // Draw wealth distribution chart
+        // Draw wealth distribution
         function drawWealthChart() {
-            wealthCtx.clearRect(0, 0, wealthChart.width, wealthChart.height);
+            wealthCtx.fillStyle = '#0f172a';
+            wealthCtx.fillRect(0, 0, wealthChart.width, wealthChart.height);
             
             // Sort agents by wealth
-            const sortedAgents = [...agents].sort((a, b) => a.money - b.money);
-            const barWidth = wealthChart.width / sortedAgents.length;
+            const sorted = [...agents].sort((a, b) => a.totalWealth() - b.totalWealth());
             
-            // Find max wealth for scaling
-            const maxWealth = Math.max(...sortedAgents.map(a => a.money));
+            const barWidth = wealthChart.width / sorted.length;
+            const maxWealth = Math.max(...sorted.map(a => a.totalWealth()), 1);
             
-            // Draw bars
-            sortedAgents.forEach((agent, i) => {
-                const barHeight = (agent.money / maxWealth) * (wealthChart.height - 40);
+            sorted.forEach((agent, i) => {
+                const barHeight = (agent.totalWealth() / maxWealth) * (wealthChart.height - 60);
                 const x = i * barWidth;
-                const y = wealthChart.height - barHeight;
+                const y = wealthChart.height - barHeight - 30;
                 
-                wealthCtx.fillStyle = agent.color;
+                wealthCtx.fillStyle = agent.getColor();
                 wealthCtx.fillRect(x, y, barWidth - 1, barHeight);
             });
             
-            // Draw labels
+            // Labels
             wealthCtx.fillStyle = 'white';
             wealthCtx.font = '12px Arial';
             wealthCtx.textAlign = 'center';
-            wealthCtx.fillText('Wealth Distribution (Poorest → Richest)', wealthChart.width / 2, wealthChart.height - 10);
+            wealthCtx.fillText('Wealth Distribution (Poorest → Richest)', wealthChart.width / 2, wealthChart.height - 5);
         }
         
-        // Update agent positions and simulate interactions
-        function updateAgents() {
-            // Move agents
-            agents.forEach(agent => {
-                agent.x += agent.vx;
-                agent.y += agent.vy;
-                
-                // Bounce off walls
-                if (agent.x < 0 || agent.x > economyCanvas.width) agent.vx *= -1;
-                if (agent.y < 0 || agent.y > economyCanvas.height) agent.vy *= -1;
-                
-                // Keep within bounds
-                agent.x = Math.max(0, Math.min(economyCanvas.width, agent.x));
-                agent.y = Math.max(0, Math.min(economyCanvas.height, agent.y));
-                
-                // Update wealth history
-                agent.wealthHistory.push(agent.money);
-                if (agent.wealthHistory.length > 100) {
-                    agent.wealthHistory.shift();
-                }
-            });
+        // Update stats display
+        function updateStats() {
+            const moneyUsers = agents.filter(a => a.uses_money).length;
+            const adoption = (moneyUsers / agents.length * 100).toFixed(1);
             
-            // Simulate random transactions
-            if (Math.random() < 0.3) {
-                const fromIndex = Math.floor(Math.random() * agents.length);
-                const toIndex = Math.floor(Math.random() * agents.length);
-                
-                if (fromIndex !== toIndex) {
-                    const fromAgent = agents[fromIndex];
-                    const toAgent = agents[toIndex];
-                    
-                    // Only transfer money if the sender has enough
-                    const amount = Math.min(fromAgent.money * 0.1, 100);
-                    
-                    if (amount > 1 && fromAgent.money > amount) {
-                        fromAgent.money -= amount;
-                        toAgent.money += amount;
-                        
-                        // Record transaction for visualization
-                        transactions.push({
-                            from: { x: fromAgent.x, y: fromAgent.y },
-                            to: { x: toAgent.x, y: toAgent.y },
-                            amount: amount,
-                            age: 0
-                        });
-                    }
+            const totalSuccessful = agents.reduce((sum, a) => sum + a.successful_trades, 0);
+            const totalFailed = agents.reduce((sum, a) => sum + a.failed_barter_attempts, 0);
+            
+            const totalMoney = agents.reduce((sum, a) => sum + a.money, 0);
+            const avgWealth = agents.reduce((sum, a) => sum + a.totalWealth(), 0) / agents.length;
+            
+            // Calculate Gini coefficient
+            const sorted = agents.map(a => a.totalWealth()).sort((a, b) => a - b);
+            let giniSum = 0;
+            for (let i = 0; i < agents.length; i++) {
+                for (let j = 0; j < agents.length; j++) {
+                    giniSum += Math.abs(sorted[i] - sorted[j]);
                 }
             }
+            const gini = giniSum / (2 * agents.length * agents.length * avgWealth);
             
-            // Age transactions
-            transactions.forEach(t => t.age++);
+            document.getElementById('currencyAdoption').textContent = `${adoption}%`;
+            document.getElementById('successfulTrades').textContent = Math.floor(totalSuccessful / 2);
+            document.getElementById('failedBarters').textContent = Math.floor(totalFailed / 2);
+            document.getElementById('avgWealth').textContent = moneyUsers > 0 ? 
+                `$${Math.round(avgWealth)}` : `${Math.round(avgWealth)} goods`;
+            document.getElementById('giniCoefficient').textContent = gini.toFixed(3);
+            document.getElementById('moneySupply').textContent = `$${Math.round(totalMoney)}`;
+            
+            // Check for major milestones
+            if (adoption >= 10 && adoption < 11 && time % 60 === 0) {
+                addEvent('🎉 10% currency adoption reached!', true);
+            }
+            if (adoption >= 50 && adoption < 51 && time % 60 === 0) {
+                addEvent('🎉 MAJORITY using money!', true);
+            }
+            if (adoption >= 90 && adoption < 91 && time % 60 === 0) {
+                addEvent('🎉 Money economy fully established!', true);
+            }
         }
         
-        // Main simulation loop
-        function simulate() {
-            if (!simulationRunning) return;
-            
-            time++;
-            updateAgents();
-            drawEconomy();
-            drawWealthChart();
-            updateStats();
-            
-            animationId = requestAnimationFrame(simulate);
+        // Control functions
+        function startSimulation() {
+            if (!simulationRunning) {
+                simulationRunning = true;
+                updateSimulation();
+            }
         }
         
-        // Initialize simulation
-        function init() {
+        function pauseSimulation() {
+            simulationRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        }
+        
+        function resetSimulation() {
+            pauseSimulation();
+            time = 0;
+            recentTrades = [];
             initializeAgents();
             drawEconomy();
             drawWealthChart();
             updateStats();
-
-            // Set up event listeners for sliders
-            document.getElementById('moneySupply').addEventListener('input', function() {
-                document.getElementById('moneySupplyValue').textContent = this.value;
-                moneySupply = parseInt(this.value);
-            });
-            document.getElementById('greed').addEventListener('input', function() {
-                document.getElementById('greedValue').textContent = this.value;
-            });
-            document.getElementById('risk').addEventListener('input', function() {
-                document.getElementById('riskValue').textContent = this.value;
-            });
-            document.getElementById('trust').addEventListener('input', function() {
-                document.getElementById('trustValue').textContent = this.value;
-            });
-
-            // Simulation speed control (example, add slider in UI if needed)
-            // Controls.speed = ...
-
-            // Agent count control (example, add slider in UI if needed)
-            // Controls.agent_count = ...
-
-            // Economy settings (production/consumption rates)
-            // Controls.production_rate = ...
-            // Controls.consumption_rate = ...
-
-            // Money settings
-            // Controls.enable_money = ...
-            // Controls.money_seeding = ...
-
-            // Set up control buttons
-            document.getElementById('startBtn').addEventListener('click', function() {
-                if (!simulationRunning) {
-                    simulationRunning = true;
-                    simulate();
+            updatePhase();
+        }
+        
+        function toggleSpeed() {
+            speedMultiplier = speedMultiplier === 1 ? 2 : 1;
+            document.getElementById('speedUpBtn').textContent = 
+                speedMultiplier === 1 ? 'Speed Up (2x)' : 'Normal Speed (1x)';
+        }
+        
+        function printMoney() {
+            agents.forEach(agent => {
+                if (agent.uses_money) {
+                    agent.money += 100;
                 }
             });
-            document.getElementById('pauseBtn').addEventListener('click', function() {
-                simulationRunning = false;
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                }
-            });
-            document.getElementById('resetBtn').addEventListener('click', Controls.reset);
-            document.getElementById('interveneBtn').addEventListener('click', Controls.print_money);
-
-            // Example: Add banking system button (if you add to UI)
-            // document.getElementById('bankBtn').addEventListener('click', Controls.introduce_bank);
-
-            // Set up scenario buttons
-            document.querySelectorAll('.scenario-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    const scenario = this.dataset.scenario;
-                    if (scenario === 'invisible-hand') Controls.preset_barter();
-                    else if (scenario === 'hyperinflation') Controls.preset_money();
-                    else if (scenario === 'depression') Controls.preset_crash();
-                    else if (scenario === 'ubi') Controls.print_money();
-                    else if (scenario === 'crypto') Controls.introduce_bank();
-                    else if (scenario === 'communist') {
-                        // Wealth redistribution - everyone gets the same
-                        Stats.total_agents = agents.length;
-                        Stats.money_supply = agents.reduce((sum, agent) => sum + agent.money, 0);
-                        Stats.avg_wealth = Stats.money_supply / Stats.total_agents;
-                        // Median wealth
-                        const sortedWealth = agents.map(a => a.money).sort((a, b) => a - b);
-                        if (Stats.total_agents % 2 === 0) {
-                            Stats.median_wealth = (sortedWealth[Stats.total_agents/2 - 1] + sortedWealth[Stats.total_agents/2]) / 2;
-                        } else {
-                            Stats.median_wealth = sortedWealth[Math.floor(Stats.total_agents/2)];
-                        }
-                        // Gini coefficient (simplified)
-                        let giniSum = 0;
-                        for (let i = 0; i < Stats.total_agents; i++) {
-                            for (let j = 0; j < Stats.total_agents; j++) {
-                                giniSum += Math.abs(sortedWealth[i] - sortedWealth[j]);
-                            }
-                        }
-                        Stats.gini_coefficient = giniSum / (2 * Stats.total_agents * Stats.total_agents * Stats.avg_wealth);
-                        // Inflation rate (placeholder)
-                        Stats.inflation_rate = (Math.sin(time/100) * 5 + 2).toFixed(1);
-                        // Currency adoption (placeholder: % agents with money > 0)
-                        Stats.currency_adoption = Math.round(100 * agents.filter(a => a.money > 0).length / Stats.total_agents);
-                        // Update DOM
-                        document.getElementById('totalMoney').textContent = `$${Math.round(Stats.money_supply).toLocaleString()}`;
-                        document.getElementById('giniCoefficient').textContent = Stats.gini_coefficient.toFixed(3);
-                        document.getElementById('inflationRate').textContent = `${Stats.inflation_rate}%`;
-                        document.getElementById('unemployment').textContent = `${(Math.sin(time/50) * 2 + 5).toFixed(1)}%`;
-                        document.getElementById('tradeVolume').textContent = `$${Math.round(Math.random() * 50000 + 100000).toLocaleString()}`;
-                        document.getElementById('avgWealth').textContent = `$${Math.round(Stats.avg_wealth).toLocaleString()}`;
-                        // Optionally display more stats in the UI
-                    } // <-- Add this closing brace to end the event handler function
-
-                    time = 0;
-                    transactions = [];
+            addEvent('💵 Government printed money! +$100 to all money users', true);
+        }
+        
+        // Scenario presets
+        function applyScenario(scenario) {
+            pauseSimulation();
+            time = 0;
+            recentTrades = [];
+            
+            switch(scenario) {
+                case 'barter':
+                    Config.agentCount = 80;
                     initializeAgents();
+                    addEvent('Scenario: Pure Barter Economy');
+                    break;
                     
-                    // Apply scenario-specific modifications
-                    switch(scenario) {
-                        case 'invisible-hand':
-                            // Free market - minimal intervention
-                            document.getElementById('greed').value = 0.8;
-                            document.getElementById('risk').value = 0.7;
-                            document.getElementById('greedValue').textContent = '0.8';
-                            document.getElementById('riskValue').textContent = '0.7';
-                            break;
-                            
-                        case 'hyperinflation':
-                            // Print massive amounts of money
-                            agents.forEach(agent => {
-                                agent.money *= 10;
-                            });
-                            break;
-                            
-                        case 'depression':
-                            // Credit freeze and wealth destruction
-                            agents.forEach(agent => {
-                                if (agent.type === 'BANK') {
-                                    agent.money *= 0.5; // Banks lose money
-                                } else {
-                                    agent.money *= 0.7; // Everyone loses wealth
-                                }
-                            });
-                            break;
-                            
-                        case 'ubi':
-                            // Universal Basic Income
-                            agents.forEach(agent => {
-                                agent.money += 200; // Give everyone money
-                            });
-                            break;
-                            
-                        case 'crypto':
-                            // Introduce cryptocurrency - create new wealthy class
-                            for (let i = 0; i < 5; i++) {
-                                agents.push({
-                                    id: agents.length,
-                                    type: 'INVESTOR',
-                                    x: Math.random() * economyCanvas.width,
-                                    y: Math.random() * economyCanvas.height,
-                                    vx: (Math.random() - 0.5) * 2,
-                                    vy: (Math.random() - 0.5) * 2,
-                                    money: 10000, // Crypto millionaires
-                                    color: '#7c3aed',
-                                    size: 20,
-                                    wealthHistory: []
-                                });
-                            }
-                            break;
-                            
-                        case 'communist':
-                            // Wealth redistribution - everyone gets the same
-                            const totalWealth = agents.reduce((sum, agent) => sum + agent.money, 0);
-                            const equalShare = totalWealth / agents.length;
-                            
-                            agents.forEach(agent => {
-                                agent.money = equalShare;
-                            });
-                            break;
-                    }
+                case 'money-seed':
+                    Config.agentCount = 80;
+                    initializeAgents();
+                    // Seed 20% with money
+                    agents.slice(0, Math.floor(agents.length * 0.2)).forEach(agent => {
+                        agent.uses_money = true;
+                        agent.money = 100;
+                        agent.goods = {food: 0, tools: 0, materials: 0};
+                    });
+                    addEvent('Scenario: Money Seeded (20% start with money)');
+                    break;
                     
-                    drawEconomy();
-                    drawWealthChart();
-                    updateStats();
-                }); // <-- End of scenario button event handler
-
-            // Start everything when page loads
-            window.addEventListener('load', init);
+                case 'inequality':
+                    Config.agentCount = 80;
+                    initializeAgents();
+                    // Make 10% very wealthy
+                    agents.slice(0, Math.floor(agents.length * 0.1)).forEach(agent => {
+                        agent.uses_money = true;
+                        agent.money = 500;
+                        agent.goods = {food: 0, tools: 0, materials: 0};
+                    });
+                    addEvent('Scenario: High Inequality (10% control wealth)');
+                    break;
+                    
+                case 'crash':
+                    // Destroy 70% of wealth
+                    agents.forEach(agent => {
+                        if (agent.uses_money) {
+                            agent.money *= 0.3;
+                        } else {
+                            agent.goods.food = Math.floor(agent.goods.food * 0.3);
+                            agent.goods.tools = Math.floor(agent.goods.tools * 0.3);
+                            agent.goods.materials = Math.floor(agent.goods.materials * 0.3);
+                        }
+                    });
+                    addEvent('🔥 ECONOMIC CRASH! 70% of wealth destroyed', true);
+                    break;
+            }
+            
+            drawEconomy();
+            drawWealthChart();
+            updateStats();
+            updatePhase();
+        }
+        
+        // Event listeners
+        document.getElementById('startBtn').addEventListener('click', startSimulation);
+        document.getElementById('pauseBtn').addEventListener('click', pauseSimulation);
+        document.getElementById('resetBtn').addEventListener('click', resetSimulation);
+        document.getElementById('speedUpBtn').addEventListener('click', toggleSpeed);
+        document.getElementById('printMoneyBtn').addEventListener('click', printMoney);
+        
+        // Slider controls
+        document.getElementById('agentCount').addEventListener('input', function() {
+            Config.agentCount = parseInt(this.value);
+            document.getElementById('agentCountValue').textContent = this.value;
+        });
+        
+        document.getElementById('productionRate').addEventListener('input', function() {
+            Config.productionRate = parseFloat(this.value);
+            document.getElementById('productionRateValue').textContent = this.value;
+        });
+        
+        document.getElementById('frustration').addEventListener('input', function() {
+            Config.frustrationThreshold = parseInt(this.value);
+            document.getElementById('frustrationValue').textContent = this.value;
+        });
+        
+        document.getElementById('tradeDistance').addEventListener('input', function() {
+            Config.tradeDistance = parseInt(this.value);
+            document.getElementById('tradeDistanceValue').textContent = this.value;
+        });
+        
+        // Scenario buttons
+        document.querySelectorAll('.scenario-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                applyScenario(this.dataset.scenario);
+            });
+        });
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initializeAgents();
+            drawEconomy();
+            drawWealthChart();
+            updateStats();
+            updatePhase();
+        });
     </script>
 </body>
 </html>
