@@ -1,4 +1,15 @@
+
 ## 💸 MoneyForge - Economic System Simulator
+
+### Default Simulation
+
+When you open MoneyForge, a default simulation starts automatically:
+
+- Agents begin in a pure barter economy.
+- You’ll see agents moving, producing goods, and attempting trades.
+- As barter fails, some agents will spontaneously adopt money.
+- Currency adoption, wealth distribution, and trade activity are visualized in real time.
+- Use the controls to adjust parameters, intervene, or export data.
 
 ### MVP Build Order & Features
 
