@@ -1,5 +1,49 @@
 ## 💸 MoneyForge - Economic System Simulator
 
+### MVP Build Order & Features
+
+**Step-by-Step Build Sessions:**
+
+**Session 1: Core Engine**
+
+- Canvas setup and animation loop
+- Agent class with movement, collision, and basic properties
+- Goods production system
+- Basic barter logic (double coincidence of wants)
+
+**Session 2: Money Emergence**
+
+- Failed trade tracking
+- Money adoption algorithm (agents switch to money after repeated barter failures)
+- Currency spread mechanics (neighbors influence adoption)
+- Price discovery system (market sets prices based on supply/demand)
+
+**Session 3: Visualization**
+
+- Color-coded wealth display
+- Trade animation (lines between agents)
+- Real-time stats display (population, trades, money supply, Gini coefficient, etc.)
+- Basic charts (adoption curve, wealth distribution)
+
+**Session 4: Controls & Polish**
+
+- Slider controls for speed, agent count, production/consumption rates, etc.
+- Intervention buttons (print money, reset, introduce bank)
+- Preset scenarios (barter, money, crash)
+- UI polish for beauty and clarity
+
+**MVP Success Criteria:**
+
+- You can watch barter fail
+- You can watch money spontaneously emerge
+- You can see wealth inequality form
+- You can intervene (print money, etc.)
+- It looks beautiful (your aesthetic)
+- It runs smoothly (60fps)
+- Someone watching goes "holy shit"
+
+---
+
 ### **The Philosophical Hook:**
 
 > "Money is the most successful collective fiction in human history. It only works because we all agree to pretend it works."
@@ -8,11 +52,12 @@
 
 ---
 
-## 🏗️ Core Architecture:
+## 🏗️ Core Architecture
 
 ### **Layer 1: Agents (The Players)**
 
 **Agent Types:**
+
 - 👷 **Workers** - Produce goods, earn wages
 - 🏭 **Businesses** - Buy labor, sell products
 - 🏛️ **Banks** - Lend money, charge interest
@@ -21,6 +66,7 @@
 - 🎲 **Gamblers** - High risk, high reward behavior
 
 **Each Agent Has:**
+
 ```javascript
 {
   money: 100,           // Current wealth
@@ -38,11 +84,12 @@
 
 ---
 
-## 💡 Core Systems:
+## 💡 Core Systems
 
 ### **1. Barter → Money Evolution**
 
 **Start with pure barter:**
+
 ```
 Worker has: 10 apples
 Worker wants: 1 tool
@@ -53,6 +100,7 @@ Problem: Double coincidence of wants needed!
 ```
 
 **Watch money EMERGE:**
+
 - Agents realize certain goods trade easier
 - Gold/shells become common intermediaries
 - Money appears as **solution to coordination problem**
@@ -61,6 +109,7 @@ Problem: Double coincidence of wants needed!
 ### **2. Value Construction**
 
 **Supply & Demand Visualization:**
+
 ```
 Many apples → Low price
 Few apples → High price
@@ -75,12 +124,14 @@ VALUE IS COLLECTIVE BELIEF
 ### **3. Market Dynamics**
 
 **Price Discovery:**
+
 - Agents post "bids" (willing to pay)
 - Agents post "asks" (willing to sell)
 - Trades happen when bid meets ask
 - **Watch market prices emerge from chaos**
 
 **Market Types:**
+
 - 🍎 Goods Market (food, tools, materials)
 - 💼 Labor Market (hiring workers)
 - 🏠 Asset Market (houses, land)
@@ -90,6 +141,7 @@ VALUE IS COLLECTIVE BELIEF
 ### **4. Credit & Debt**
 
 **The Most Important Part:**
+
 ```
 Bank loans $100 to Worker
 Worker buys tool from Blacksmith
@@ -100,6 +152,7 @@ MONEY WAS CREATED FROM NOTHING
 ```
 
 **Fractional Reserve Banking:**
+
 - Banks lend more than they have
 - Money supply multiplies
 - **Debt creates money**
@@ -110,6 +163,7 @@ MONEY WAS CREATED FROM NOTHING
 **Emergent Boom-Bust Cycles:**
 
 **Bubble Formation:**
+
 ```
 1. Asset price rises
 2. People notice → buy more
@@ -127,6 +181,7 @@ MONEY WAS CREATED FROM NOTHING
 ### **6. Inequality Dynamics**
 
 **Rich Get Richer Mechanisms:**
+
 - Capital earns returns (money makes money)
 - Network effects (know the right people)
 - First-mover advantage
@@ -134,6 +189,7 @@ MONEY WAS CREATED FROM NOTHING
 - Information asymmetry
 
 **Poverty Traps:**
+
 - Can't afford tools → can't produce → can't earn
 - Debt spiral
 - No safety net → forced to sell assets cheap
@@ -142,7 +198,7 @@ MONEY WAS CREATED FROM NOTHING
 
 ---
 
-## 🎮 Interactive Elements:
+## 🎮 Interactive Elements
 
 ### **Intervention Tools:**
 
@@ -181,6 +237,7 @@ MONEY WAS CREATED FROM NOTHING
 ### **Observation Tools:**
 
 **Real-Time Charts:**
+
 - Wealth distribution (Gini coefficient)
 - Money supply over time
 - Price indices (inflation/deflation)
@@ -190,6 +247,7 @@ MONEY WAS CREATED FROM NOTHING
 - GDP (total goods produced)
 
 **Agent Visualization:**
+
 ```
 Color by wealth:
 🟢 Green = Rich
@@ -204,50 +262,58 @@ Motion = Economic activity
 
 ---
 
-## 🎯 Scenarios & Experiments:
+## 🎯 Scenarios & Experiments
 
 ### **1. "The Invisible Hand"**
+
 - Start with random initial conditions
 - NO intervention
 - Watch markets self-organize
 - Does it reach equilibrium or chaos?
 
 ### **2. "Hyperinflation"**
+
 - Government prints massive amounts of money
 - Watch prices spiral
 - Currency becomes worthless
 - Barter returns
 
 ### **3. "The Depression"**
+
 - Credit freeze (banks stop lending)
 - Cascading bankruptcies
 - Unemployment spike
 - Deflationary spiral
 
 ### **4. "Universal Basic Income"**
+
 - Give everyone fixed income
 - Does it reduce inequality?
 - Does inflation eat it?
 - Do people stop working?
 
 ### **5. "Cryptocurrency Experiment"**
+
 - Introduce decentralized money
 - No central bank
 - Fixed supply
 - Watch it compete with fiat
 
 ### **6. "Feudalism → Capitalism"**
+
 - Start with lords owning everything
 - Allow free markets
 - Watch capitalism emerge (or not)
 
 ### **7. "Communist Utopia"**
+
 - Ban private property
 - Central planning
 - Equal distribution
 - Does it work? Why/why not?
 
 ### **8. "Libertarian Paradise"**
+
 - No regulation
 - No taxes
 - Pure free market
@@ -255,23 +321,26 @@ Motion = Economic activity
 
 ---
 
-## 🧠 What Makes This DEEP:
+## 🧠 What Makes This DEEP
 
 ### **Money is a Social Technology**
 
 **Like Language (LinguaForge):**
+
 - Only works if everyone uses it
 - Evolves over time
 - Cultural transmission
 - Can become extinct
 
 **Like Genes (GenomeForge):**
+
 - Replicates through copying
 - Mutations (new currencies)
 - Selection (some currencies survive, others die)
 - Evolutionary pressure
 
 **Like Neural Networks (NeuroForge):**
+
 - Distributed processing (no central brain)
 - Learns from feedback
 - Can be trained
@@ -279,9 +348,10 @@ Motion = Economic activity
 
 ---
 
-## 🎨 Visualization Ideas:
+## 🎨 Visualization Ideas
 
 ### **Main View:**
+
 ```
 Agents as particles moving in 2D space
 - Closer = more likely to trade
@@ -292,6 +362,7 @@ Agents as particles moving in 2D space
 ```
 
 ### **Network View:**
+
 ```
 Nodes = Agents
 Edges = Trade relationships
@@ -301,6 +372,7 @@ Color = Type of relationship
 ```
 
 ### **Flow View:**
+
 ```
 Money as liquid flowing between agents
 Wider streams = more money
@@ -310,6 +382,7 @@ Watch money circulate through economy
 ```
 
 ### **Wealth Pyramid:**
+
 ```
     💎 (Ultra-rich)
    💎💎💎 (Rich)
@@ -323,27 +396,31 @@ Watch inequality grow/shrink
 
 ---
 
-## 🔗 Integration with Other Forges:
+## 🔗 Integration with Other Forges
 
 ### **MoneyForge ↔ EcoForge:**
+
 - Money as resource in ecosystem
 - Predators = rich exploiting poor
 - Prey = workers being exploited
 - Same dynamics, different metaphor
 
 ### **MoneyForge ↔ GenomeForge:**
+
 - Wealth as "fitness"
 - Money-making strategies as "genes"
 - Successful strategies replicate
 - Economic evolution
 
 ### **MoneyForge ↔ LinguaForge:**
+
 - Currency as language
 - Exchange rates as translation
 - Bitcoin as new dialect
 - Money "speaks" value
 
 ### **MoneyForge ↔ NeuroForge:**
+
 - Economy as distributed brain
 - Prices as neural signals
 - Market as computation
@@ -351,14 +428,16 @@ Watch inequality grow/shrink
 
 ---
 
-## 💎 Why This is Your Most Subversive Forge:
+## 💎 Why This is Your Most Subversive Forge
 
 **All your other Forges show NATURAL systems:**
+
 - Trees grow because physics
 - Ecosystems work because evolution
 - Brains learn because neurons
 
 **MoneyForge shows a FICTIONAL system:**
+
 - Money works because... we say so
 - Value exists because... we agree
 - Markets function because... collective belief
@@ -367,7 +446,7 @@ Watch inequality grow/shrink
 
 ---
 
-## 🎯 The Tagline:
+## 🎯 The Tagline
 
 > **"MoneyForge: Watch the world's most successful hallucination come to life."**
 
@@ -381,7 +460,7 @@ or
 
 ---
 
-## 🔥 Build Priority:
+## 🔥 Build Priority
 
 **I'd put this as #1 priority because:**
 
@@ -394,7 +473,7 @@ or
 
 ---
 
-## 🚀 The Question:
+## 🚀 The Question
 
 **Does MoneyForge feel like the missing piece?**
 
