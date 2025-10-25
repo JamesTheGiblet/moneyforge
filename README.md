@@ -1,4 +1,3 @@
-
 # 💸 MoneyForge - Economic System Simulator
 
 > "Money is the most successful collective fiction in human history. It only works because we all agree to pretend it works."
@@ -15,16 +14,18 @@ Simply open the `moneyforge.html` file in a modern web browser. The simulation w
 
 ---
 
-## Core Systems
+## 💡 Core Systems
 
 ### **1. Barter → Money Evolution**
 
 The simulation begins with a pure barter economy. Agents must find a "double coincidence of wants" to trade. As they fail, frustrated agents observe the success of their money-using neighbors and may spontaneously adopt money, leading to its organic emergence as a medium of exchange.
 
-+### **2. Dynamic Value & Pricing**
+### **2. Dynamic Value & Pricing**
+
 Prices for goods (`food`, `tools`, `materials`) are not fixed. They emerge dynamically based on the total supply and demand across the entire economy. Disasters, production changes, and shifts in agent desires will cause prices to fluctuate in real-time.
 
-+### **3. Division of Labor & Agent Roles**
+### **3. Division of Labor & Agent Roles**
+
 Agents are assigned specialized roles, creating a natural need for trade and a more complex economy:
 
 - **🌾 Farmer:** Produces `food`.
@@ -63,3 +64,41 @@ A comprehensive dashboard provides real-time insight into the economy's health:
 - **Asset Market:** Tracks the price of the speculative asset.
 - **Government Treasury:** Visualizes the government's financial state as it collects taxes and distributes UBI.
 - **Event Log:** A running commentary of important economic events.
+
+---
+
+## 📚 Documentation
+
+For a deeper dive into the simulation, please see the other documentation files:
+
+- **START_HERE.md:** A quick-start guide for running the simulation.
+- **FEATURES.md:** A detailed list of all features, mechanics, and scenarios.
+- **DATABASE_MANIFESTO.md:** The philosophical and conceptual underpinnings of the project.
+
+---
+
+## 🌌 The Forge Universe
+
+MoneyForge is part of a larger collection of simulations, each designed to reveal the underlying "code" of different systems. The Forges are divided into two categories:
+
+### Natural Systems (The Physics of Reality)
+
+These simulations explore systems governed by the laws of nature.
+
+- **TreeForge:** Shows you a tree growing.
+- **EcoForge:** Shows you predator-prey dynamics.
+- **ShatterForge:** Shows you glass breaking.
+- **FluidForge:** Simulates physical matter.
+- **NeuroForge:** Simulates neural computation.
+- **GenomeForge:** The "source code" for natural systems. It shows you *why* the tree grows a certain way, the *genetic basis* for predator-prey traits, or how crystal lattice structures are encoded in material "genes."
+
+### Artificial Systems (The Physics of Belief)
+
+These simulations explore systems created by human consciousness, which operate on rules we invent.
+
+- **LinguaForge:** Simulates the evolution of symbolic systems (language).
+- **MelodyForge:** Simulates the emergence of aesthetic patterns (music).
+- **GameForge:** Evolves complete mini-games by treating mechanics, physics, and visuals as genetic traits, guided by player fun ratings.
+- **MoneyForge:** Simulates the ultimate artificial system—an economic fiction built entirely on collective belief.
+
+MoneyForge is unique because it is the only Forge that could stop working if the agents within it simply stopped believing. It is proof that, for humans, reality is negotiable.
