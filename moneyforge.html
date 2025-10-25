@@ -416,6 +416,7 @@
                 <button id="speedUpBtn" class="success">Speed Up (2x)</button>
                 <button id="clearSaveBtn" class="danger">Clear Saved State</button>
                 <button id="printMoneyBtn" class="danger">Print Money</button>
+                <button id="disasterBtn" class="danger">Trigger Disaster</button>
                 <button id="exportBtn">Export Data</button>
                 <button id="importBtn">Import Data</button>
                 <input type="file" id="importFile" style="display: none;" accept="application/json">
@@ -471,6 +472,18 @@
                 <div class="viz-title">Currency Adoption Over Time</div>
                 <canvas id="adoptionChart" class="economy-canvas"></canvas>
             </div>
+            <div class="viz-panel">
+                <div class="viz-title">Market Prices Over Time</div>
+                <canvas id="priceChart" class="economy-canvas"></canvas>
+            </div>
+            <div class="viz-panel">
+                <div class="viz-title">Asset Market Price</div>
+                <canvas id="assetChart" class="economy-canvas"></canvas>
+            </div>
+            <div class="viz-panel">
+                <div class="viz-title">Government Treasury</div>
+                <canvas id="governmentChart" class="economy-canvas"></canvas>
+            </div>
         </div>
         
         <div class="agent-legend">
@@ -495,9 +508,21 @@
                 <span>Farmer</span>
             </div>
             <div class="legend-item">
+                <div class="legend-color" style="background-color: #a855f7;"></div>
+                <span>Bank</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #facc15;"></div>
+                <span>Government</span>
+            </div>
+            <div class="legend-item">
                 <div class="legend-color" style="border: 2px solid #2ecc71; background: transparent;"></div>
                 <div class="legend-color" style="border: 2px solid #95a5a6; background: transparent;"></div>
                 <span>Goods (Food, Tools)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="border: 3px dotted #f472b6; background: transparent;"></div>
+                <span>Asset Holder</span>
             </div>
         </div>
         
@@ -534,6 +559,9 @@
         const economyCanvas = document.getElementById('economyCanvas');
         const wealthChart = document.getElementById('wealthChart');
         const adoptionChart = document.getElementById('adoptionChart');
+        const priceChart = document.getElementById('priceChart');
+        const governmentChart = document.getElementById('governmentChart');
+        const assetChart = document.getElementById('assetChart');
         const ctx = economyCanvas.getContext('2d');
         const wealthCtx = wealthChart.getContext('2d');
         const adoptionCtx = adoptionChart.getContext('2d');
@@ -545,6 +573,12 @@
             wealthChart.height = wealthChart.offsetHeight;
             adoptionChart.width = adoptionChart.offsetWidth;
             adoptionChart.height = adoptionChart.offsetHeight;
+            priceChart.width = priceChart.offsetWidth;
+            priceChart.height = priceChart.offsetHeight;
+            governmentChart.width = governmentChart.offsetWidth;
+            governmentChart.height = governmentChart.offsetHeight;
+            assetChart.width = assetChart.offsetWidth;
+            assetChart.height = assetChart.offsetHeight;
         }
 
         window.addEventListener('resize', resizeCanvases);
@@ -560,7 +594,18 @@
         let speedMultiplier = 1;
         let recentTrades = [];
         let eventLog = [];
+        let priceHistory = { food: [], tools: [], materials: [] };
+        let governmentTreasuryHistory = [];
+        let tradeVolumeHistory = [];
         
+        // Asset market for post-money phase
+        let assetMarket = {
+            price: 50,
+            trend: 0, // -1 for down, 1 for up, 0 for neutral
+            history: []
+        };
+        const ASSET_COLOR = '#f472b6'; // Pink for assets
+
         // Market state for dynamic pricing
         let market = {
             prices: {
@@ -614,6 +659,18 @@
                 skills: ['tools'],
                 desires: ['food', 'materials'],
                 color: '#95a5a6' // Grey for tools
+            },
+            BANK: {
+                name: 'Bank',
+                skills: [],
+                desires: [], // Banks desire profit, not goods
+                color: '#a855f7' // Purple
+            },
+            GOVERNMENT: {
+                name: 'Government',
+                skills: [],
+                desires: [],
+                color: '#facc15' // Yellow/Gold
             }
         };
         class Agent {
@@ -639,14 +696,28 @@
                     tools: randomInt(0, 10),
                     materials: randomInt(0, 10)
                 };
-                this.goods[this.role.skills[0]] += 15; // Give a starting bonus for their profession
                 
-                this.skills = this.role.skills;
-                this.desires = this.role.desires;
+                if (this.role.name === 'Bank') {
+                    this.uses_money = true;
+                    this.money = 1000; // Banks start with significant capital
+                    this.skills = [];
+                    this.desires = [];
+                } else if (this.role.name === 'Government') {
+                    this.uses_money = true;
+                    this.money = 5000; // Government starts with a treasury
+                    this.skills = [];
+                    this.desires = [];
+                } else {
+                    this.goods[this.role.skills[0]] += 15; // Bonus for their profession
+                    this.skills = this.role.skills;
+                    this.desires = this.role.desires;
+                }
                 
                 // Money system
                 this.uses_money = false;
                 this.money = 0;
+                this.assets = 0; // Number of asset units owned
+                this.debts = []; // { lenderId, amount }
                 
                 // Trading history
                 this.successful_trades = 0;
@@ -661,8 +732,36 @@
                 return this.desires.some(good => (this.goods[good] || 0) < 10);
             }
 
+            needsLoan() {
+                // Needs a loan if they use money, have less than $20, and have desires
+                return this.uses_money && this.money < 20 && this.desires.length > 0 && this.debts.length === 0;
+            }
+
+            updateDesires() {
+                // This logic is primarily for barterers to adapt their priorities.
+                // Money users' desires are more fixed as they don't hold goods.
+                if (this.uses_money || this.role.name === 'Bank') {
+                    return;
+                }
+
+                // A barterer's potential desires are what they can't produce.
+                const potentialDesires = GOODS.filter(g => !this.skills.includes(g));
+
+                // Sort desires based on current inventory. Desire most what you have least of.
+                potentialDesires.sort((a, b) => {
+                    const amountA = this.goods[a] || 0;
+                    const amountB = this.goods[b] || 0;
+                    return amountA - amountB; // Sort in ascending order of amount, making the most needed item first.
+                });
+
+                this.desires = potentialDesires;
+            }
+
             move() {
                 // Homing behavior: agents are pulled towards their home location
+                if (this.role.name === 'Government') {
+                    // Government agent can be stationary or have unique movement
+                }
                 const homeDx = this.homeX - this.x;
                 const homeDy = this.homeY - this.y;
                 const distToHome = distance(this.x, this.y, this.homeX, this.homeY);
@@ -672,7 +771,7 @@
 
                 // --- Purposeful Movement ---
                 let seekingTarget = null;
-                if (this.isSeeking()) {
+                if (this.isSeeking() && !this.needsLoan()) {
                     const desiredGood = this.desires.find(g => (this.goods[g] || 0) < 10);
                     if (desiredGood) {
                         let bestTarget = null;
@@ -689,6 +788,21 @@
                         }
                         seekingTarget = bestTarget;
                     }
+                } else if (this.needsLoan()) {
+                    // Find the nearest bank
+                    let bestTarget = null;
+                    let minDistance = Config.tradeDistance * 5; // Wider search for a bank
+
+                    for (const other of agents) {
+                        if (other.role.name === 'Bank' && other.money > 100) { // Find a solvent bank
+                            const d = distance(this.x, this.y, other.x, other.y);
+                            if (d < minDistance) {
+                                minDistance = d;
+                                bestTarget = other;
+                            }
+                        }
+                    }
+                    seekingTarget = bestTarget;
                 }
 
                 if (seekingTarget) {
@@ -718,6 +832,7 @@
             }
             
             produce() {
+                if (this.role.name === 'Government') return; // Government doesn't produce goods
                 // Produce goods based on skills
                 this.skills.forEach(skill => {
                     if (Math.random() < Config.productionRate / 10) {
@@ -732,7 +847,8 @@
             
             totalWealth() {
                 if (this.uses_money) {
-                    return this.money;
+                    // Total wealth is cash + value of assets
+                    return this.money + (this.assets * assetMarket.price);
                 }
                 return this.totalGoods();
             }
@@ -879,8 +995,132 @@
                     }
                 }
             }
+
+            considerInvestment() {
+                // Only money-users with no debt consider investing
+                if (!this.uses_money || this.debts.length > 0 || this.role.name === 'Bank') {
+                    return;
+                }
+
+                const assetPrice = assetMarket.price;
+                const cashBuffer = 150; // Keep at least this much cash
+
+                // Buy condition: have surplus cash, and a small chance to act
+                if (this.money > cashBuffer + assetPrice && Math.random() < 0.02) {
+                    const afford = Math.floor((this.money - cashBuffer) / assetPrice);
+                    if (afford > 0) {
+                        const buyAmount = Math.min(afford, 5); // Buy up to 5 units at a time
+                        this.money -= buyAmount * assetPrice;
+                        this.assets += buyAmount;
+                        addEvent(`Agent bought ${buyAmount} asset(s) at $${assetPrice.toFixed(2)}`);
+                    }
+                }
+
+                // Sell condition: have assets and either need cash or want to take profit
+                if (this.assets > 0 && Math.random() < 0.02) {
+                    let sellAmount = 0;
+                    if (this.money < 50) { // Need cash
+                        sellAmount = Math.ceil(this.assets / 2);
+                    } else if (assetPrice > 75) { // Take profit
+                        sellAmount = Math.floor(this.assets / 3);
+                    }
+
+                    if (sellAmount > 0) {
+                        this.money += sellAmount * assetPrice;
+                        this.assets -= sellAmount;
+                        addEvent(`Agent sold ${sellAmount} asset(s) at $${assetPrice.toFixed(2)}`);
+                    }
+                }
+            }
+
+            updateFinancials() {
+                if (this.role.name === 'Government') {
+                    // Government collects taxes and distributes UBI, handled globally.
+                    // It does not take loans or repay debt itself.
+                    if (time % 200 === 0) { // Every 200 ticks
+                        collectTaxes(this);
+                    }
+                    if (time % 300 === 50) { // Every 300 ticks, offset from taxes
+                        distributeUBI(this);
+                    }
+                    return;
+                }
+                // --- Bank Logic ---
+                if (this.role.name === 'Bank') {
+                    // Accrue interest on loans (simple interest for now)
+                    // In a real scenario, this would be more complex. This is a placeholder.
+                    if (time % 100 === 0) { // Accrue interest every 100 ticks
+                        this.money += this.debts.reduce((sum, debt) => sum + debt.amount * 0.01, 0);
+                    }
+                    return; // Banks don't seek loans or repay debt in this model
+                }
+
+                // --- Loan Seeking and Repayment Logic for non-banks ---
+                if (this.needsLoan()) {
+                    // Check if near a bank to request a loan
+                    for (const other of agents) {
+                        if (other.role.name === 'Bank' && distance(this.x, this.y, other.x, other.y) < Config.tradeDistance) {
+                            const loanAmount = 100;
+                            if (other.money >= loanAmount) {
+                                other.money -= loanAmount;
+                                this.money += loanAmount;
+                                this.debts.push({ lenderId: other.id, amount: loanAmount });
+                                other.debts.push({ debtorId: this.id, amount: loanAmount }); // Track who owes them
+                                addEvent(`Agent took a $${loanAmount} loan from a bank.`, true);
+                                break; // Took a loan, stop searching
+                            }
+                        }
+                    }
+                }
+
+                // Repay debts if they have money
+                if (this.debts.length > 0 && this.money > this.debts[0].amount * 0.5) {
+                    const payment = this.money * 0.05; // Repay 5% of current money
+                    const debt = this.debts[0];
+                    const lender = agents.find(a => a.id === debt.lenderId);
+
+                    if (lender) {
+                        this.money -= payment;
+                        debt.amount -= payment;
+                        lender.money += payment;
+
+                        if (debt.amount <= 0) this.debts.shift(); // Paid off
+                    }
+                }
+            }
         }
         
+        // Update asset market price
+        function updateAssetMarket() {
+            // --- Economic Sentiment Calculation ---
+            // Calculate average trade volume over the last 50 ticks
+            const avgTradeVolume = tradeVolumeHistory.reduce((a, b) => a + b, 0) / (tradeVolumeHistory.length || 1);
+            // A "healthy" economy might have trade volume around 5% of agent count
+            const healthyVolume = Config.agentCount * 0.05;
+            // Sentiment: > 1 is boom, < 1 is bust
+            const sentiment = avgTradeVolume / (healthyVolume || 1);
+            const sentimentDrift = (sentiment - 1) * 0.3; // Positive drift in good times, negative in bad
+
+            // Change trend occasionally
+            if (Math.random() < 0.01) {
+                assetMarket.trend = random(-1, 1);
+            }
+
+            // Price follows a random walk with momentum
+            const change = (assetMarket.trend * 0.1) + random(-0.5, 0.5) + sentimentDrift;
+            let newPrice = assetMarket.price + change;
+
+            // Mean reversion towards a sentiment-adjusted base price
+            const basePrice = 50 * Math.max(0.5, Math.min(2, sentiment)); // Base price adjusts with economy
+            newPrice += (basePrice - newPrice) * 0.005;
+
+            assetMarket.price = Math.max(10, newPrice); // Don't let it crash to zero
+
+            assetMarket.history.push(assetMarket.price);
+            if (assetMarket.history.length > 200) {
+                assetMarket.history.shift();
+            }
+        }
         // Event logging
         function addEvent(message, important = false) {
             const logDiv = document.getElementById('eventLog');
@@ -902,12 +1142,20 @@
         // Initialize agents
         function initializeAgents() {
             agents = [];
+            // Create one government agent
+            const govAgent = new Agent();
+            govAgent.role = ROLES.GOVERNMENT;
+            govAgent.uses_money = true;
+            govAgent.money = 5000;
+            govAgent.skills = [];
+            govAgent.desires = [];
+            agents.push(govAgent);
+
             for (let i = 0; i < Config.agentCount; i++) {
                 agents.push(new Agent());
             }
             
             eventLog = [];
-            document.getElementById('eventLog').innerHTML = '<div style="font-weight: bold; margin-bottom: 10px; color: var(--primary);">Event Log</div>';
             addEvent('Simulation started - Pure barter economy');
         }
         
@@ -918,6 +1166,10 @@
             const state = {
                 agents: agents,
                 time: time,
+                governmentTreasuryHistory: governmentTreasuryHistory,
+                tradeVolumeHistory: tradeVolumeHistory,
+                assetMarket: assetMarket,
+                priceHistory: priceHistory,
                 adoptionHistory: adoptionHistory,
                 config: {
                     agentCount: Config.agentCount,
@@ -945,6 +1197,10 @@
                 // Re-hydrate agent objects with their methods
                 agents = savedState.agents.map(savedAgent => Object.assign(new Agent(), savedAgent));
                 time = savedState.time;
+                governmentTreasuryHistory = savedState.governmentTreasuryHistory || [];
+                tradeVolumeHistory = savedState.tradeVolumeHistory || [];
+                assetMarket = savedState.assetMarket || { price: 50, trend: 0, history: [] };
+                priceHistory = savedState.priceHistory || { food: [], tools: [], materials: [] };
                 adoptionHistory = savedState.adoptionHistory || [];
                 
                 // Restore config and update sliders
@@ -992,8 +1248,49 @@
                 // Smooth price changes to prevent wild fluctuations
                 market.prices[good] = market.prices[good] * 0.95 + newPrice * 0.05;
             }
+
+            // Add to history and cap length
+            for (const good of GOODS) {
+                priceHistory[good].push(market.prices[good]);
+                if (priceHistory[good].length > 200) {
+                    priceHistory[good].shift();
+                }
+            }
         }
 
+        // --- Government Functions ---
+        function collectTaxes(government) {
+            let totalTaxCollected = 0;
+            const taxRate = 0.02; // 2% tax on money over a threshold
+            const taxThreshold = 200; // Only tax money above $200
+
+            agents.forEach(agent => {
+                if (agent.uses_money && agent.money > taxThreshold && agent.role.name !== 'Government') {
+                    const taxableIncome = agent.money - taxThreshold;
+                    const taxAmount = taxableIncome * taxRate;
+                    agent.money -= taxAmount;
+                    government.money += taxAmount;
+                    totalTaxCollected += taxAmount;
+                }
+            });
+
+            if (totalTaxCollected > 0) {
+                addEvent(`🏛️ Government collected $${Math.round(totalTaxCollected)} in taxes.`);
+            }
+        }
+
+        function distributeUBI(government) {
+            const ubiAmount = 5; // $5 UBI payment
+            const totalCost = (agents.length - 1) * ubiAmount;
+
+            if (government.money >= totalCost) {
+                government.money -= totalCost;
+                agents.forEach(agent => {
+                    if (agent.role.name !== 'Government') agent.money += ubiAmount;
+                });
+                addEvent(`💸 Government distributed $${ubiAmount} UBI to all citizens.`);
+            }
+        }
         // Update phase indicator
         function updatePhase() {
             const moneyUsers = agents.filter(a => a.uses_money).length;
@@ -1022,7 +1319,14 @@
 
             // Update market prices based on supply and demand
             updateMarketPrices();
+            updateAssetMarket();
             // Move and produce
+
+            // --- Disaster Event ---
+            if (Math.random() < 0.0005 && time > 1000) { // Don't trigger too early
+                triggerDisaster();
+                addEvent('A random disaster occurred!', true);
+            }
             agents.forEach(agent => {
                 agent.move();
                 agent.produce();
@@ -1071,13 +1375,31 @@
             }
 
             agents.forEach(agent => agent.considerMoneyAdoption());
+            agents.forEach(agent => agent.updateFinancials());
+            agents.forEach(agent => agent.considerInvestment());
             // Age trades
             recentTrades = recentTrades.filter(t => t.age++ < 30);
+
+            // Record trade volume for sentiment analysis
+            tradeVolumeHistory.push(recentTrades.length);
+            if (tradeVolumeHistory.length > 50) { // Keep last 50 ticks
+                tradeVolumeHistory.shift();
+            }
             // --- Record currency adoption history ---
             const moneyUsers = agents.filter(a => a.uses_money).length;
             const adoption = (moneyUsers / agents.length * 100);
             adoptionHistory.push({time, adoption});
             if (adoptionHistory.length > 200) adoptionHistory.shift();
+
+            // --- Record government treasury history ---
+            const government = agents.find(a => a.role.name === 'GOVERNMENT');
+            if (government) {
+                governmentTreasuryHistory.push(government.money);
+                if (governmentTreasuryHistory.length > 200) {
+                    governmentTreasuryHistory.shift();
+                }
+            }
+
 
             // Auto-save progress periodically
             if (time % 300 === 0) { // Save every 300 ticks
@@ -1087,6 +1409,9 @@
             // Update visuals
             drawEconomy();
             drawWealthChart();
+            drawGovernmentChart();
+            drawAssetChart();
+            drawPriceChart();
             drawAdoptionChart();
             updateStats();
             updatePhase();
@@ -1132,6 +1457,93 @@
                 adoptionCtx.moveTo(40, y);
                 adoptionCtx.lineTo(adoptionChart.width - 10, y);
                 adoptionCtx.stroke();
+            }
+        }
+
+        // Draw market price chart
+        function drawPriceChart() {
+            priceCtx.fillStyle = '#0f172a';
+            priceCtx.fillRect(0, 0, priceChart.width, priceChart.height);
+
+            // Draw axes
+            priceCtx.strokeStyle = '#334155';
+            priceCtx.lineWidth = 2;
+            priceCtx.beginPath();
+            priceCtx.moveTo(40, 20);
+            priceCtx.lineTo(40, priceChart.height - 30);
+            priceCtx.lineTo(priceChart.width - 10, priceChart.height - 30);
+            priceCtx.stroke();
+
+            const maxPrice = Math.max(...Object.values(priceHistory).flat(), 20) * 1.1;
+
+            // Draw price lines for each good
+            for (const good of GOODS) {
+                const history = priceHistory[good];
+                if (history.length > 1) {
+                    priceCtx.strokeStyle = GOODS_COLORS[good];
+                    priceCtx.lineWidth = 2;
+                    priceCtx.beginPath();
+                    for (let i = 0; i < history.length; i++) {
+                        const x = 40 + (i / (history.length - 1)) * (priceChart.width - 60);
+                        const y = priceChart.height - 30 - (history[i] / maxPrice) * (priceChart.height - 60);
+                        if (i === 0) priceCtx.moveTo(x, y);
+                        else priceCtx.lineTo(x, y);
+                    }
+                    priceCtx.stroke();
+                }
+            }
+
+            // Draw labels and ticks
+            priceCtx.fillStyle = 'white';
+            priceCtx.font = '12px Arial';
+            priceCtx.textAlign = 'left';
+            priceCtx.fillText('Time →', priceChart.width - 70, priceChart.height - 10);
+            priceCtx.fillText('Price ($)', 45, 30);
+            for (let i = 0; i <= maxPrice; i += Math.ceil(maxPrice / 4)) {
+                const y = priceChart.height - 30 - (i / maxPrice) * (priceChart.height - 60);
+                priceCtx.fillText(Math.round(i), 5, y + 5);
+            }
+        }
+
+        // Draw asset market chart
+        function drawAssetChart() {
+            const assetCtx = assetChart.getContext('2d');
+            assetCtx.fillStyle = '#0f172a';
+            assetCtx.fillRect(0, 0, assetChart.width, assetChart.height);
+
+            // Draw axes
+            assetCtx.strokeStyle = '#334155';
+            assetCtx.lineWidth = 2;
+            assetCtx.beginPath();
+            assetCtx.moveTo(40, 20);
+            assetCtx.lineTo(40, assetChart.height - 30);
+            assetCtx.lineTo(assetChart.width - 10, assetChart.height - 30);
+            assetCtx.stroke();
+
+            const history = assetMarket.history;
+            if (history.length > 1) {
+                const maxPrice = Math.max(...history, 60) * 1.1;
+                assetCtx.strokeStyle = ASSET_COLOR;
+                assetCtx.lineWidth = 3;
+                assetCtx.beginPath();
+                for (let i = 0; i < history.length; i++) {
+                    const x = 40 + (i / (history.length - 1)) * (assetChart.width - 60);
+                    const y = assetChart.height - 30 - (history[i] / maxPrice) * (assetChart.height - 60);
+                    if (i === 0) assetCtx.moveTo(x, y);
+                    else assetCtx.lineTo(x, y);
+                }
+                assetCtx.stroke();
+
+                // Draw labels and ticks
+                assetCtx.fillStyle = 'white';
+                assetCtx.font = '12px Arial';
+                assetCtx.textAlign = 'left';
+                assetCtx.fillText('Time →', assetChart.width - 70, assetChart.height - 10);
+                assetCtx.fillText('Price ($)', 45, 30);
+                for (let i = 0; i <= maxPrice; i += Math.ceil(maxPrice / 4)) {
+                    const y = assetChart.height - 30 - (i / maxPrice) * (assetChart.height - 60);
+                    assetCtx.fillText(Math.round(i), 5, y + 5);
+                }
             }
         }
         // Export data as JSON
@@ -1244,6 +1656,17 @@
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
+
+                // Draw asset ownership indicator
+                if (agent.assets > 0) {
+                    ctx.strokeStyle = ASSET_COLOR;
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([3, 3]); // Dotted line
+                    ctx.beginPath();
+                    ctx.arc(agent.x, agent.y, agent.size + 8, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
                 
                 // Draw inventory/money indicator
                 if (agent.uses_money) {
@@ -1287,31 +1710,70 @@
             });
         }
         
-        // Draw wealth distribution
+        // Draw wealth distribution as a Lorenz Curve
         function drawWealthChart() {
+            const wealthCtx = document.getElementById('wealthChart').getContext('2d');
+            const chartWidth = wealthChart.canvas.width;
+            const chartHeight = wealthChart.canvas.height;
+
             wealthCtx.fillStyle = '#0f172a';
-            wealthCtx.fillRect(0, 0, wealthChart.width, wealthChart.height);
-            
-            // Sort agents by wealth
-            const sorted = [...agents].sort((a, b) => a.totalWealth() - b.totalWealth());
-            
-            const barWidth = wealthChart.width / sorted.length;
-            const maxWealth = Math.max(...sorted.map(a => a.totalWealth()), 1);
-            
-            sorted.forEach((agent, i) => {
-                const barHeight = (agent.totalWealth() / maxWealth) * (wealthChart.height - 60);
-                const x = i * barWidth;
-                const y = wealthChart.height - barHeight - 30;
-                
-                wealthCtx.fillStyle = agent.getColor();
-                wealthCtx.fillRect(x, y, barWidth - 1, barHeight);
+            wealthCtx.fillRect(0, 0, chartWidth, chartHeight);
+
+            if (agents.length === 0) return;
+
+            // 1. Get and sort wealth
+            const sortedWealth = agents.map(a => a.totalWealth()).sort((a, b) => a - b);
+            const totalWealth = sortedWealth.reduce((sum, w) => sum + w, 0);
+
+            // 2. Calculate cumulative percentages
+            const lorenzPoints = [{ x: 0, y: 0 }];
+            let cumulativeWealth = 0;
+            sortedWealth.forEach((wealth, i) => {
+                cumulativeWealth += wealth;
+                lorenzPoints.push({
+                    x: (i + 1) / agents.length,
+                    y: totalWealth > 0 ? cumulativeWealth / totalWealth : 0
+                });
             });
-            
-            // Labels
+
+            // 3. Draw axes and line of equality
+            const padding = 40;
+            const graphWidth = chartWidth - padding * 1.5;
+            const graphHeight = chartHeight - padding * 1.5;
+
+            wealthCtx.strokeStyle = '#334155';
+            wealthCtx.lineWidth = 2;
+            wealthCtx.strokeRect(padding, padding, graphWidth, graphHeight);
+
+            wealthCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            wealthCtx.setLineDash([5, 5]);
+            wealthCtx.beginPath();
+            wealthCtx.moveTo(padding, padding + graphHeight);
+            wealthCtx.lineTo(padding + graphWidth, padding);
+            wealthCtx.stroke();
+            wealthCtx.setLineDash([]);
+
+            // 4. Draw the Lorenz curve
+            wealthCtx.strokeStyle = '#3b82f6'; // Blue for the curve
+            wealthCtx.lineWidth = 3;
+            wealthCtx.beginPath();
+            lorenzPoints.forEach((point, i) => {
+                const x = padding + point.x * graphWidth;
+                const y = padding + graphHeight - point.y * graphHeight;
+                if (i === 0) wealthCtx.moveTo(x, y);
+                else wealthCtx.lineTo(x, y);
+            });
+            wealthCtx.stroke();
+
+            // 5. Draw labels
             wealthCtx.fillStyle = 'white';
             wealthCtx.font = '12px Arial';
             wealthCtx.textAlign = 'center';
-            wealthCtx.fillText('Wealth Distribution (Poorest → Richest)', wealthChart.width / 2, wealthChart.height - 5);
+            wealthCtx.fillText('Cumulative % of Population', chartWidth / 2, chartHeight - 10);
+            wealthCtx.save();
+            wealthCtx.rotate(-Math.PI / 2);
+            wealthCtx.fillText('Cumulative % of Wealth', -chartHeight / 2, 15);
+            wealthCtx.restore();
         }
         
         // Update stats display
@@ -1377,11 +1839,18 @@
         function resetSimulation() {
             pauseSimulation();
             time = 0;
+            governmentTreasuryHistory = [];
+            tradeVolumeHistory = [];
+            assetMarket = { price: 50, trend: 0, history: [] };
+            priceHistory = { food: [], tools: [], materials: [] };
             adoptionHistory = [];
             recentTrades = [];
+            document.getElementById('eventLog').innerHTML = '<div style="font-weight: bold; margin-bottom: 10px; color: var(--primary);">Event Log</div>';
             initializeAgents();
             drawEconomy();
+            drawAssetChart();
             drawWealthChart();
+            drawPriceChart();
             updateStats();
             updatePhase();
         }
@@ -1401,6 +1870,22 @@
             addEvent('💵 Government printed money! +$100 to all money users', true);
         }
         
+        function triggerDisaster() {
+            const disasterTypes = [
+                { good: 'food', name: 'Severe Crop Failure' },
+                { good: 'materials', name: 'Major Mine Collapse' },
+                { good: 'tools', name: 'Widespread Factory Fires' }
+            ];
+            const disaster = disasterTypes[randomInt(0, disasterTypes.length - 1)];
+            const destructionRate = random(0.7, 0.9); // Destroy 70-90%
+
+            addEvent(`🔥 DISASTER! A ${disaster.name} destroyed ${Math.round(destructionRate * 100)}% of all ${disaster.good}!`, true);
+
+            agents.forEach(agent => {
+                agent.goods[disaster.good] = Math.floor(agent.goods[disaster.good] * (1 - destructionRate));
+            });
+        }
+
         // Scenario presets
         function applyScenario(scenario) {
             pauseSimulation();
@@ -1485,6 +1970,7 @@
         });
         document.getElementById('speedUpBtn').addEventListener('click', toggleSpeed);
         document.getElementById('printMoneyBtn').addEventListener('click', printMoney);
+        document.getElementById('disasterBtn').addEventListener('click', triggerDisaster);
         document.getElementById('importBtn').addEventListener('click', () => {
             document.getElementById('importFile').click();
         });
@@ -1529,6 +2015,9 @@
             }
             drawEconomy();
             drawWealthChart();
+            drawGovernmentChart();
+            drawAssetChart();
+            drawPriceChart();
             drawAdoptionChart();
             updateStats();
             updatePhase();
