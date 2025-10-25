@@ -1,3 +1,41 @@
+---
+
+## 🧑‍💻 API Documentation
+
+### Agent Class
+
+```
+class Agent {
+	constructor();
+	move(); // Updates agent position based on velocity
+	produce(); // Produces goods based on agent skills
+	tryBarter(otherAgent); // Attempts barter trade with another agent
+	tryMoneyTrade(otherAgent); // Attempts money-based trade
+	considerMoneyAdoption(neighbors); // Decides whether to adopt money
+	totalGoods(); // Returns total goods held
+	totalWealth(); // Returns total wealth (goods or money)
+	getColor(); // Returns color for visualization
+}
+```
+
+### Simulation Functions
+
+- `initializeAgents()`: Creates agent population and resets simulation state.
+- `updateSimulation()`: Main simulation loop (movement, production, trading, money adoption, rendering).
+- `drawEconomy()`: Renders agent activity and trades on canvas.
+- `drawWealthChart()`: Renders wealth distribution chart.
+- `drawAdoptionChart()`: Renders currency adoption over time.
+- `updateStats()`: Updates stats panel with current metrics.
+- `applyScenario(scenario)`: Applies preset scenario to simulation.
+- `exportData()`: Exports simulation data as JSON.
+
+### Extension Points
+
+- **Agent Class**: Extend with new behaviors, agent types, or economic logic.
+- **Simulation Functions**: Add new charts, stats, or intervention tools.
+- **UI Controls**: Add sliders, buttons, or scenario presets for new experiments.
+
+---
 # 💸 MoneyForge - Economic System Simulator
 
 > "Money is the most successful collective fiction in human history. It only works because we all agree to pretend it works."
