@@ -102,3 +102,9 @@ These simulations explore systems created by human consciousness, which operate 
 - **MoneyForge:** Simulates the ultimate artificial system—an economic fiction built entirely on collective belief.
 
 MoneyForge is unique because it is the only Forge that could stop working if the agents within it simply stopped believing. It is proof that, for humans, reality is negotiable.
+<p align="center">
+  <img src="https://img.shields.io/badge/Forge‑Theory‑Labs‑Ecosystem-black" />
+  <img src="https://img.shields.io/badge/Semantic‑System‑typed-blue" />
+  <img src="https://img.shields.io/badge/SCP‑Capsule‑included-purple" />
+</p>
+
